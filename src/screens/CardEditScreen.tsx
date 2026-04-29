@@ -152,11 +152,20 @@ const CardEditScreen = (props: CardAddScreenProps | CardEditScreenProps) => {
   const [cardNumber, setCardNumber] = useState<string>(() => {
     return initialData?.sid ?? generateRandomCardNumber();
   });
-  const uid = useQuery(['uid', cardNumber], () =>
-    CardConv.convertSID(cardNumber),
+
+  const isValidSid = /^[0-9A-Fa-f]{16}$/.test(cardNumber);
+
+  const uid = useQuery(
+    ['uid', cardNumber],
+    () => CardConv.convertSID(cardNumber),
+    { enabled: isValidSid, retry: false },
   );
 
   const styledUid = useMemo(() => {
+    if (!isValidSid) {
+      return t('card_edit.invalid_card_number');
+    }
+
     if (!uid.isSuccess) {
       return t('card_edit.loading_card_number');
     }
@@ -165,10 +174,14 @@ const CardEditScreen = (props: CardAddScreenProps | CardEditScreenProps) => {
       uid.data.match(/[A-Za-z0-9]{4}/g)?.join(' - ') ??
       t('card_edit.invalid_card_number')
     );
-  }, [t, uid]);
+  }, [isValidSid, t, uid]);
 
   const onChangeCardName = useCallback((s: string) => {
     setCardName(s);
+  }, []);
+
+  const onChangeCardNumber = useCallback((s: string) => {
+    setCardNumber(s.replace(/[^0-9A-Fa-f]/g, '').toUpperCase().slice(0, 16));
   }, []);
 
   const changeCardNumber = useCallback(() => {
@@ -246,21 +259,33 @@ const CardEditScreen = (props: CardAddScreenProps | CardEditScreenProps) => {
 
         <View style={styles.fieldItemContainer}>
           <TextField
-            title={t('card_edit.card_number')}
-            value={styledUid}
-            editable={false}
+            title={t('card_edit.sid')}
+            value={cardNumber}
+            onChangeText={onChangeCardNumber}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            maxLength={16}
+            placeholder="0123456789ABCDEF"
           />
           <Button
             containerStyle={styles.cardNumberChangeButton}
             onPress={changeCardNumber}
-            disabled={!uid.isSuccess}
             text={t('card_edit.change_card_number')}
+          />
+        </View>
+
+        <View style={styles.fieldItemContainer}>
+          <TextField
+            title={t('card_edit.card_number')}
+            value={styledUid}
+            editable={false}
           />
         </View>
 
         <Button
           onPress={save}
           containerStyle={styles.saveButton}
+          disabled={!isValidSid}
           text={t('card_edit.save')}
         />
       </ScrollView>
