@@ -20,8 +20,9 @@ public class CardConvModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     void convertSID(String sid, Promise promise){
-        if(sid.length() != 16 || sid.startsWith("02FE") == false){
+        if(sid.length() != 16 || !sid.matches("[0-9A-Fa-f]{16}")){
             promise.reject("SID_FORMAT_ERROR", "SID must be 16-digit hex string.");
+            return;
         }
 
         String cardID = converter.toKonamiID(sid);

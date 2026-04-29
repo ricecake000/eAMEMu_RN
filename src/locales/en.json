@@ -34,6 +34,7 @@
     "invalid_card_number": "Invalid card number",
     "card_preview": "Card Preview",
     "card_name": "Card Name",
+    "sid": "SID (FeliCa IDm, 16 hex digits)",
     "card_number": "Card Number",
     "change_card_number": "Change card number",
     "save": "Save"
